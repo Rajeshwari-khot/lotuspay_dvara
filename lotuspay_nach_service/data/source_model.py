@@ -18,16 +18,16 @@ class NachDebitBase(BaseModel):
 
 class NachDebitBase5(BaseModel):
     amount_maximum: Optional[int] = 10000
-    date_first_collection:Optional[str]='2020-01-01'
-    debtor_account_name: Optional[str] = 'DVARA'
-    debtor_account_number: Optional[str] = '123456'
+    # date_first_collection:Optional[str]='2022-05-04'
+    debtor_account_name: Optional[str] = 'Naru Lal Gameti'
+    debtor_account_number: Optional[str] = '10064009266'
     debtor_account_type: Optional[str] = 'savings'
-    debtor_agent_mmbid: Optional[str]='ICIC0000001'
-    debtor_email: Optional[str]='test@lotuspay.com'
-    debtor_mobile: Optional[str]='9123456789'
-    frequency: Optional[str] = 'MNTH'
-    reference1: Optional[str] = 'LOAN_ID_123'
-    variant: Optional[str]= "physical"
+    debtor_agent_mmbid: Optional[str]='IDFB0042781'
+    debtor_email: Optional[str]='test1@gmail.com'
+    debtor_mobile: Optional[str]='9636791214'
+    # frequency: Optional[str] = 'MNTH'
+    # reference1: Optional[str] = 'LOAN_ID_123'
+    # variant: Optional[str]= "physical"
 
 
 

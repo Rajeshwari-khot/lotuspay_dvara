@@ -10,7 +10,7 @@ LOTUSPAY_SERVER = 'lotus-pay-server'
 
 
 async def lotus_pay_post_source(context, data):
-    """ Generic Post Method for lotuspay Sources """
+    """ Generic Post Method for lotuspay Surces """
     try:
         validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'base-url', LOTUSPAY_SERVER + ' base-url not configured')
         api_key = get_env_or_fail(LOTUSPAY_SERVER, 'api-key', LOTUSPAY_SERVER + ' api-key not configured')
@@ -113,6 +113,8 @@ async def lotus_pay_post_source4(context, data):
 async def lotus_pay_post_source5(context, data):
     """ Generic Post Method for lotuspay Sources """
     try:
+        print(f"-------------context-------------{context}")
+        print(f"-------------data-------------{data}")
         url = f'https://api-test.lotuspay.com/v1/{context}'
         str_url = str(url)
         str_data = str(data)
@@ -123,7 +125,7 @@ async def lotus_pay_post_source5(context, data):
         source_context_dict = response_to_dict(source_context_response)
 
         print(source_context_dict)
-        source_context_response_id = source_context_dict.get('id')
+        source_context_response_id = source_context_dict.get('source_id')
         print(f"---------source_context_response_id------{source_context_response_id}")
         log_id = await insert_logs(str_url, 'LOTUSPAY', str_data, source_context_response.status_code, source_context_response.content, datetime.now())
 
@@ -174,6 +176,8 @@ async def lotus_pay_source_status(source_id):
         source_context_response_id=source_context_dict.get('mandate')
         result=source_context_response_id
         print(f"---------------{result}")
+        return result
     except Exception as e:
         result = JSONResponse(status_code=500, content={"message": "Error Occurred at LotusPay Post Method"})
         return result
+

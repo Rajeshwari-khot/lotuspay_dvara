@@ -12,7 +12,7 @@ LOTUSPAY_SERVER = 'lotus-pay-server'
 async def lotuspay_post_customer(context, data):
     """ Generic Post Method for lotuspay customer """
     try:
-        validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'base-url', LOTUSPAY_SERVER + ' base-url not configured')
+        validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'customer-base-url', LOTUSPAY_SERVER + ' base-url not configured')
         api_key = get_env_or_fail(LOTUSPAY_SERVER, 'api-key', LOTUSPAY_SERVER + ' api-key not configured')
         url = validate_url + f'/{context}/'
         str_url = str(url)
@@ -29,4 +29,7 @@ async def lotuspay_post_customer(context, data):
         result = JSONResponse(status_code=500, content={"message": f"Error Occurred at LotusPay Post Method - {e.args[0]}"})
 
     return result
+
+
+
 

@@ -4,6 +4,9 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from datetime import datetime
 
+
+
+
 from resource.generics import response_to_dict
 
 from databases import Database
@@ -250,23 +253,25 @@ async def create_source5(
         print('Coming inside of Customer')
         source_info = source5.dict()
         print(f"---------sourceinfo-----------{source_info}-")
-        source_id = source_info.get('source_id')
+        source_id = source_info.get('source_url')
         print(source_id)
         verify_source_in_db = await get_source_or_404(source_id, database)
         if verify_source_in_db is None:
             response_source_id = await lotus_pay_post_source5('sources', source_info)
+         
             if response_source_id is not None:
                 store_record_time = datetime.now()
                 nach_debit = source_info.get('nach_debit')
                 nach_type = source_info.get('type')
                 nach_debit['type'] = nach_type
                 nach_debit['source_id'] = response_source_id
+                # nach_debit['url']=response_source_url
                 nach_debit['created_date'] = store_record_time
                 insert_query = sources.insert().values(nach_debit)
-                source_id = await database.execute(insert_query)
+                source_url= await database.execute(insert_query)
 
                 result = JSONResponse(status_code=200, content={
-                                      "source_id": response_source_id})
+                                      "source_url": response_source_id})
             else:
                 log_id = await insert_logs('MYSQL', 'DB',  'NA', '400', 'problem with lotuspay parameters',
                                            datetime.now())
@@ -310,14 +315,21 @@ async def update_source_status(
     database: Database = Depends(get_database)
 ):
   try:
-      source_status=await lotus_pay_source_status(source_id)
-      if source_status is not None:
-          get_source_status=await get_event_status(source_status)
-          get_mandate_status=get_source_status['type']
-          print("printing mandate status from events-------",source_status,get_mandate_status)
-          print(f"---------------mandate status----{get_mandate_status}")
+      mandate_id=await lotus_pay_source_status(source_id)
+      print(f"--------source_id----{source_id}")
+      print(f"--------------------source status-----{mandate_id}")#mandate_id
+      if mandate_id is not None:
+        mandate_status=await get_event_status(mandate_id)
+        source_status=await get_event_status(source_id)
+        print(f"------source_status--------------{source_status}")
+        print("--mandate status and source status-------",source_status.get('type'),mandate_status.get('type'))
+        
+        query = sources.update().values(mandate=mandate_id, mandate_status=mandate_status.get('type'), source_status=source_status.get('type')).where(source_id==source_id)
+        source_id = await database.execute(query)
   except Exception as e:
        result = JSONResponse(status_code=500, content={"message": f"Error Occurred at DB level - {e.args[0]}"})
+
+
 
 
     

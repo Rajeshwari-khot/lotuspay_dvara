@@ -3,6 +3,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, status
 from routes.customers import router as customer_router
 from routes.bank_accounts import router as bank_account_router
 from routes.sources import router as source_router
+from routes.perdix import router as perdix_router
 from routes.subscriptions import router as subscriptions_router
 from routes.ach_debits import router as achdebits_router
 from routes.mandates import router as mandate_router
@@ -57,6 +58,7 @@ app.include_router(subscriptions_router, prefix="")
 app.include_router(achdebits_router, prefix="")
 app.include_router(mandate_router, prefix="")
 app.include_router(events_router, prefix="")
+app.include_router(perdix_router,prefix="")
 
 
 if __name__ == "__main__":
