@@ -12,14 +12,11 @@ router = APIRouter()
 async def get_event_status(
     resource_id: str
 ):
-    
     validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'base-url', LOTUSPAY_SERVER + ' base-url not configured')
     api_key = get_env_or_fail(LOTUSPAY_SERVER, 'api-key', LOTUSPAY_SERVER + ' api-key not configured')
     url = validate_url + f'/events/'
     events_response = requests.get(url, auth=(api_key, ''))
     events_dict = response_to_dict(events_response)
-    
-    
     events_data = events_dict.get('data')
     for events in events_data:
         if events['resource_id'] == resource_id:

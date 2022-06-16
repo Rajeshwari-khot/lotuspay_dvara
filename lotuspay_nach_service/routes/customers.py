@@ -1,24 +1,21 @@
-from datetime import datetime
+
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
-from commons import get_env_or_fail
-from resource.generics import response_to_dict
-import requests
-
-LOTUSPAY_SERVER = 'lotus-pay-server'
-
+from datetime import datetime
 from databases import Database
 from data.database import get_database, sqlalchemy_engine, insert_logs
 from gateway.lotuspay_customers import lotuspay_post_customer
+import requests
+from resource.generics import response_to_dict
+from commons import get_env_or_fail
 from data.customer_model import (
     customers,
     CustomerBase,
     CustomerDB,
     CustomerCreate,
 )
+
 LOTUSPAY_SERVER = 'lotus-pay-server'
-
-
 router = APIRouter()
 
 
@@ -69,26 +66,25 @@ async def create_customer(
         result = JSONResponse(status_code=500, content={"message": f"Error Occurred at DB level - {e.args[0]}"})
     return result
 
-@router.get("/customer/text", status_code=status.HTTP_200_OK,  tags=["Status"])
+
+@router.get("/customer/test",status_code=status.HTTP_200_OK, tags=["Customers"])
 async def get_customer(
-    
+    customer_id: str
 ):
-    headers={
-    "authorization":"bearer 5427b5a5-7251-4005-840f-9ddfa435b89f"
-}
-    
-    validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'customer-base-url', LOTUSPAY_SERVER + ' base-url not configured')
-    # api_key = get_env_or_fail(LOTUSPAY_SERVER, 'authorization', LOTUSPAY_SERVER + ' api-key not configured')
-    url = validate_url + f'/enrollments/'
-    customer_id = requests.get(url, auth=(headers, ''))
-    customer_dict = response_to_dict(customer_id)
-    print(f"----------------customer dict----{customer_dict}")
-    
-    
-    customer_data = customer_dict.get('data')
-    # for events in customer_data:
-    #     if events['resource_id'] == resource_id:
-    #         get_info = events
-    return customer_data
+    validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'base-url', LOTUSPAY_SERVER + ' base-url not configured')
+    api_key = get_env_or_fail(LOTUSPAY_SERVER, 'api-key', LOTUSPAY_SERVER + ' api-key not configured')
+    url = validate_url + f'/customers/{customer_id}'
+    customer_response = requests.get(url, auth=(api_key, ''))
+    customer_dict = response_to_dict(customer_response)
+    return customer_dict   
 
-
+@router.get("/customer/test1",status_code=status.HTTP_200_OK, tags=["Customers"])
+async def get_customer_list(
+    limit: int
+):
+    validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'base-url', LOTUSPAY_SERVER + ' base-url not configured')
+    api_key = get_env_or_fail(LOTUSPAY_SERVER, 'api-key', LOTUSPAY_SERVER + ' api-key not configured')
+    url = validate_url + f'/customers?limit=5'
+    customer_response = requests.get(url, auth=(api_key, ''))
+    customer_dict = response_to_dict(customer_response)
+    return customer_dict   

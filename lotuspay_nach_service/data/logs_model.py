@@ -29,9 +29,9 @@ applogs = sqlalchemy.Table(
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True),
     sqlalchemy.Column("app_type", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("request_type", sqlalchemy.String(length=255), nullable=True),
-    sqlalchemy.Column("request", LONGTEXT, nullable=True),
-    sqlalchemy.Column("request_json", LONGTEXT, nullable=True),
+    sqlalchemy.Column("request", sqlalchemy.String(length=2000), nullable=True),
+    sqlalchemy.Column("request_json", sqlalchemy.String(length=2000), nullable=True),
     sqlalchemy.Column("response_status", sqlalchemy.String(length=255), nullable=True),
-    sqlalchemy.Column("response_content", LONGTEXT, nullable=True),
+    sqlalchemy.Column("response_content", sqlalchemy.String(length=2000), nullable=True),
     sqlalchemy.Column("created_date", sqlalchemy.DateTime(), nullable=True)
 )

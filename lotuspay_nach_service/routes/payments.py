@@ -3,39 +3,42 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from datetime import datetime
 
-from databases import Database
+from databases import Database 
+import requests
+from resource.generics import response_to_dict
+from commons import get_env_or_fail
 from data.database import get_database, sqlalchemy_engine, insert_logs
 from gateway.lotuspay_payments import lotus_pay_payments_post, lotus_pay_payments_cancel
 from data.payments_model import (
     payments,
-    PaymentsBase,
-    PaymentsCreate,
-    PaymentsDB,
+    PaymentBase,
+    PaymentCreate,
+    PaymentDB,
 )
 
-
+LOTUSPAY_SERVER = 'lotus-pay-server'
 router = APIRouter()
 
 
-@router.post("/achdebits", response_model=PaymentsDB, status_code=status.HTTP_201_CREATED,  tags=["ACH Debits"])
+@router.post("/payments", response_model=PaymentDB, status_code=status.HTTP_201_CREATED,  tags=["Payments"])
 async def create_payments(
-    payments: PaymentsCreate, database: Database = Depends(get_database)
-) -> PaymentsDB:
+    payments: PaymentCreate, database: Database = Depends(get_database)
+) -> PaymentDB:
 
     try:
         payments_info = payments.dict()
-        response_achdebit_id = await lotus_pay_payments_post('ach_debits', payments_info)
-        print(response_achdebit_id)
-        if response_achdebit_id is not None:
-            achdebit_info = {
-                **achdebit_info,
-                'achdebit_id': response_achdebit_id,
+        response_payment_id = await lotus_pay_payments_post('payments', payments_info)
+        print(response_payment_id)
+        if response_payment_id is not None:
+            payment_info = {
+                **payment_info,
+                'payment_id': response_payment_id,
                 'created_date': datetime.now()
             }
-            insert_query = achdebits.insert().values(achdebit_info)
-            achdebit_id = await database.execute(insert_query)
-            result = JSONResponse(status_code=200, content={"achdebit_id": response_achdebit_id})
-        result = response_achdebit_id
+            insert_query = payments.insert().values(payment_info)
+            payment_id = await database.execute(insert_query)
+            result = JSONResponse(status_code=200, content={"payment_id": response_payment_id})
+        result = response_payment_id
 
     except:
         log_id = await insert_logs('MYSQL', 'DB', 'NA', '500', 'Error Occurred at DB level',
@@ -44,20 +47,43 @@ async def create_payments(
     return result
 
 
-@router.post("/achdebits-cancellation", status_code=status.HTTP_200_OK,  tags=["ACH Debits"])
-async def create_ach_debits_cancellation(
-    mandate: str, database: Database = Depends(get_database)
-) -> PaymentsDB:
+@router.post("/payment-cancellation", status_code=status.HTTP_200_OK,  tags=["Payments"])
+async def payment_cancellation(
+    payment_id: str, database: Database = Depends(get_database)
+) -> PaymentDB:
 
     try:
         print('before posting')
-        response_achdebit_id = await lotus_pay_payments_cancel('ach_debits', mandate)
-        print('after posting', response_achdebit_id)
+        response_payment_id = await lotus_pay_payments_cancel('payments', payment_id)
+        print('after posting', response_payment_id)
 
-        result = response_achdebit_id
+        result = response_payment_id
 
     except:
         log_id = await insert_logs('MYSQL', 'DB', 'NA', '500', 'Error Occurred at DB level',
                                    datetime.now())
         result = JSONResponse(status_code=500, content={"message": "Error Occurred at DB level"})
-    return result
+    return result 
+
+@router.get("/payments",status_code=status.HTTP_200_OK, tags=["Payments"])
+async def get_payments(
+    payment_id:str
+):
+    validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'base-url', LOTUSPAY_SERVER + ' base-url not configured')
+    api_key = get_env_or_fail(LOTUSPAY_SERVER, 'api-key', LOTUSPAY_SERVER + ' api-key not configured')
+    url = validate_url + f'/payments/{payment_id}'
+    payment_response = requests.get(url, auth=(api_key, ''))
+    payment_dict = response_to_dict(payment_response)
+    return payment_dict   
+
+
+@router.get("/payments/list",status_code=status.HTTP_200_OK, tags=["Payments"])
+async def get_payment_list(
+    limit:int
+):
+    validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'base-url', LOTUSPAY_SERVER + ' base-url not configured')
+    api_key = get_env_or_fail(LOTUSPAY_SERVER, 'api-key', LOTUSPAY_SERVER + ' api-key not configured')
+    url = validate_url + f'/payments?{limit}'
+    payment_response = requests.get(url, auth=(api_key, ''))
+    payment_dict = response_to_dict(payment_response)
+    return payment_dict 

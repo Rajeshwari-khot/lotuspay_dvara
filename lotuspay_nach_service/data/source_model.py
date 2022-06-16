@@ -7,28 +7,12 @@ from pydantic import BaseModel, Field
 
 class NachDebitBase(BaseModel):
     amount_maximum: Optional[int] = 10000
-    # date_first_collection:Optional[str]='2020-01-01'
-    debtor_agent_code:Optional[str]='ICIC'
-    debtor_account_name: Optional[str] = 'DVARA'
-    debtor_account_number: Optional[str] = '123456'
+    debtor_agent_code: Optional[str] = 'ICIC'
+    debtor_account_name: Optional[str] = 'AMIT JAIN'
+    debtor_account_number: Optional[str] = '12345678'
     debtor_account_type: Optional[str] = 'savings'
     frequency: Optional[str] = 'MNTH'
     reference1: Optional[str] = 'CU0056G1KRMKT3'
-
-
-class NachDebitBase5(BaseModel):
-    amount_maximum: Optional[int] = 10000
-    # date_first_collection:Optional[str]='2022-05-04'
-    debtor_account_name: Optional[str] = 'Naru Lal Gameti'
-    debtor_account_number: Optional[str] = '10064009266'
-    debtor_account_type: Optional[str] = 'savings'
-    debtor_agent_mmbid: Optional[str]='IDFB0042781'
-    debtor_email: Optional[str]='test1@gmail.com'
-    debtor_mobile: Optional[str]='9636791214'
-    # frequency: Optional[str] = 'MNTH'
-    # reference1: Optional[str] = 'LOAN_ID_123'
-    # variant: Optional[str]= "physical"
-
 
 
 class SourceBase(BaseModel):
@@ -56,22 +40,6 @@ class Source3Base(BaseModel):
     bank_account: Optional[str] = None
 
 
-class Source4Base(BaseModel):
-    source_id: Optional[str] = None
-    created_date: datetime = Field(default_factory=datetime.now)
-    type: Optional[str] = None
-    nach_debit: NachDebitBase
-    redirect: Optional[str] = None
-    bank_account_token: Optional[str] = None
-
-
-class Source5Base(BaseModel):
-    source_id: Optional[str] = None
-    created_date: datetime = Field(default_factory=datetime.now)
-    type: Optional[str] = None
-    nach_debit: NachDebitBase5
-
-
 class SourceRedirect(BaseModel):
     return_url: Optional[str] = 'https://www.lotuspay.com/'
 
@@ -95,19 +63,23 @@ class Source3Create(BaseModel):
     bank_account: Optional[str] = 'BA004433221AA'
 
 
-class Source4Create(BaseModel):
-    type:Optional[str]='nach debit'
-    nach_debit:NachDebitBase
-    redirect:SourceRedirect
-    bank_account_token:Optional[str]='btok_uW6flsakCYjhJP9YIVYS5Jb9'
+class NachDebitBase5(BaseModel):
+    amount_maximum: Optional[int] = 10000
+    date_first_collection:Optional[str]='2020-01-01'
+    debtor_account_name: Optional[str] = 'DVARA'
+    debtor_account_number: Optional[str] = '123456'
+    debtor_account_type: Optional[str] = 'savings'
+    debtor_agent_mmbid: Optional[str]='ICIC0000001'
+    debtor_email: Optional[str]='test@lotuspay.com'
+    debtor_mobile: Optional[str]='9123456789'
+    frequency: Optional[str] = 'MNTH'
+    reference1: Optional[str] = 'LOAN_ID_123'
+    variant: Optional[str]= "physical"
 
 
 class Source5Create(BaseModel):
     type: Optional[str] = 'nach_debit'
     nach_debit: NachDebitBase5
-    
-
-
 
 
 class SourceDB(SourceBase):
@@ -129,20 +101,42 @@ sources = sqlalchemy.Table(
     sqlalchemy.Column("debtor_account_name", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("debtor_account_number", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("debtor_account_type", sqlalchemy.String(length=255), nullable=True),
-    sqlalchemy.Column("debtor_agent_mmbid", sqlalchemy.String(length=255), nullable=True),
+    # sqlalchemy.Column("debtor_agent_mmbid", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("debtor_email", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("debtor_mobile", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("frequency", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("reference1", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("variant", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("redirect", sqlalchemy.String(length=255), nullable=True),
-    sqlalchemy.Column("source_status",sqlalchemy.String(length=255), nullable=True),
-    sqlalchemy.Column("mandate",sqlalchemy.String(length=255),nullable=True),
-    sqlalchemy.Column("mandate_status",sqlalchemy.String(length=255),nullable=True),
-
     sqlalchemy.Column("customer", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("bank_account", sqlalchemy.String(length=255), nullable=True),
     sqlalchemy.Column("bank_account_token", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("source_status", sqlalchemy.String(length=255), nullable=True),
+    # sqlalchemy.Column("mandate_id", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("mandate_status", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("source_process_id", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("source_withdraw_id", sqlalchemy.String(length=255), nullable=True),
+
     sqlalchemy.Column("created_date", sqlalchemy.DateTime(), nullable=True)
 )
-   
+
+perdix_metadata = sqlalchemy.MetaData()
+
+perdix_customer = sqlalchemy.Table(
+    "perdix_customer",
+    perdix_metadata ,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True),
+    sqlalchemy.Column("source_id", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("mandate_url", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("source_status",sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("mandate_id",sqlalchemy.String(length=255),nullable=True),
+    sqlalchemy.Column("mandate_status",sqlalchemy.String(length=255),nullable=True),
+    sqlalchemy.Column("perdix_customer_id", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("perdix_enrollment_id", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("lotuspay_customer_id", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("bank_account", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("bank_account_token", sqlalchemy.String(length=255), nullable=True),
+    sqlalchemy.Column("iterations", sqlalchemy.Integer, default=0, nullable=True),
+    sqlalchemy.Column("pending", sqlalchemy.Boolean, default=0, nullable=True),
+    sqlalchemy.Column("created_date", sqlalchemy.DateTime(), nullable=True)
+)

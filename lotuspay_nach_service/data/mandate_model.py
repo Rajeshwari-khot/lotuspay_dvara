@@ -28,7 +28,7 @@ mandates = sqlalchemy.Table(
     mandate_metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True),
     sqlalchemy.Column("mandate_id", sqlalchemy.String(length=255), nullable=True),
-    sqlalchemy.Column("metadata", LONGTEXT, nullable=True),
+    sqlalchemy.Column("metadata", sqlalchemy.String(length=2000), nullable=True),
     sqlalchemy.Column("created_date", sqlalchemy.DateTime(), nullable=True)
 )
 

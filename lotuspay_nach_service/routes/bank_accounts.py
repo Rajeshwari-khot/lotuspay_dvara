@@ -5,7 +5,10 @@ from datetime import datetime
 
 from databases import Database
 from data.database import get_database, sqlalchemy_engine, insert_logs
-from gateway.lotuspay_bank_accounts import lotus_pay_post_bank_account
+from gateway.lotuspay_bank_accounts import lotus_pay_post_bank_account 
+import requests
+from resource.generics import response_to_dict
+from commons import get_env_or_fail
 from data.bankaccount_model import (
     bankaccounts,
     BankAccountBase,
@@ -13,6 +16,7 @@ from data.bankaccount_model import (
     BankAccountCreate,
 )
 
+LOTUSPAY_SERVER = 'lotus-pay-server'
 router = APIRouter()
 
 
@@ -53,7 +57,7 @@ async def create_bank_account(
                 }
                 insert_query = bankaccounts.insert().values(bank_account_info)
                 bank_account_id = await database.execute(insert_query)
-                result = JSONResponse(status_code=200, content={"Customer_id": response_bank_account_id})
+                result = JSONResponse(status_code=200, content={"bank_account_id": response_bank_account_id})
             else:
                 log_id = await insert_logs('MYSQL', 'DB', 'NA', '400', 'problem with lotuspay parameters',
                                            datetime.now())
@@ -69,3 +73,26 @@ async def create_bank_account(
         result = JSONResponse(status_code=500, content={"message": f"Error Occurred at DB level - {e.args[0]}"})
     return result
 
+
+@router.get("/test",status_code=status.HTTP_200_OK, tags=["BankAccounts"])
+async def get_bank_accouts(
+    customer_id: str, bankaccount_id:str
+):
+    validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'base-url', LOTUSPAY_SERVER + ' base-url not configured')
+    api_key = get_env_or_fail(LOTUSPAY_SERVER, 'api-key', LOTUSPAY_SERVER + ' api-key not configured')
+    url = validate_url + f'/customers/{customer_id}/bank_accounts/{bankaccount_id}/'
+    bank_response = requests.get(url, auth=(api_key, ''))
+    bankaccount_dict = response_to_dict(bank_response)
+    return bankaccount_dict
+
+
+@router.get("/test1",status_code=status.HTTP_200_OK, tags=["BankAccounts"])
+async def get_bank_account_list(
+    customer_id: str
+):
+    validate_url = get_env_or_fail(LOTUSPAY_SERVER, 'base-url', LOTUSPAY_SERVER + ' base-url not configured')
+    api_key = get_env_or_fail(LOTUSPAY_SERVER, 'api-key', LOTUSPAY_SERVER + ' api-key not configured')
+    url = validate_url + f'/customers/{customer_id}'
+    bank_response = requests.get(url, auth=(api_key, ''))
+    bank_dict = response_to_dict(bank_response)
+    return  bank_dict 
